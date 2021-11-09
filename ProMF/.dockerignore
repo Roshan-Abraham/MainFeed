@@ -1,0 +1,10 @@
+__pycache__/
+.gitattributes
+.gitignore
+wsgi.py
+app.yaml
+key.json
+FirebaseIO_backup2.py
+FirebaseIORes.py
+# ignore all *.class files in all folders, including build root
+**/*.ipynb
