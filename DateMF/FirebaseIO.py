@@ -295,6 +295,8 @@ def DGet(id, smoke):
 def SendDocDate(x,id):
     for i in x:
         db.collection(u'DateUsers').document(id).collection(u'BestMatches').document(i['id']).set(i)
+    field_updates = {"bestMatchesCount": len(x)}
+    db.collection('DateUsers').document(id).update(field_updates)
     return 'MFList uploaded'
 
 def DyUpdate(x, id):
