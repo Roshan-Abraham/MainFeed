@@ -80,12 +80,22 @@ class FireBase:
             # print('Entering first if case')
             all_users = db.collection('DateUsers').where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).where(u'smoking', u'==', self.user_data["PrefSmoking"]).where(u'drinking', u'==', self.user_data["PrefDrinking"]).limit(len(CurrentList) + 400)
             all_user = [doc.to_dict() for doc in all_users.stream()]
-            all_id = [doc.id for doc in all_users.stream()]
+            # all_id = [doc.id for doc in all_users.stream()]
 
             df = pd.DataFrame.from_dict(all_user)
-            df['id'] = all_id
+            # df['id'] = all_id
 
-            df = df[~df['id'].isin(CurrentList)]
+            df = df[~df['uuid'].isin(CurrentList)]
+
+            if len(df) < 400:
+                filler_users = db.collection('DateUsers').where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).limit(len(CurrentList) + 400)
+                filler_user = [doc.to_dict() for doc in filler_users.stream()]
+                PreCalledList = df['uuid'].tolist()
+                filler_user = filler_user[~filler_user['uuid'].isin(PreCalledList)]
+                filler_user = filler_user[~filler_user['uuid'].isin(CurrentList)]
+
+                df = df.append(filler_user)
+
             df = df[0:400]
 
             return df, tagData
@@ -94,16 +104,114 @@ class FireBase:
 
             all_users = db.collection('DateUsers').where(u'gender', u'==', self.user_data["SexPreference"]).where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).where(u'smoking', u'==', self.user_data["PrefSmoking"]).where(u'drinking', u'==', self.user_data["PrefDrinking"]).limit(len(CurrentList) + 400)
             all_user = [doc.to_dict() for doc in all_users.stream()]
-            all_id = [doc.id for doc in all_users.stream()]
+            # all_id = [doc.id for doc in all_users.stream()]
 
             df = pd.DataFrame.from_dict(all_user)
-            df['id'] = all_id
+            # df['id'] = all_id
 
-            df = df[~df['id'].isin(CurrentList)]
+            df = df[~df['uuid'].isin(CurrentList)]
+        
+            if len(df) < 400:
+                filler_users = db.collection('DateUsers').where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).limit(len(CurrentList) + 400)
+                filler_user = [doc.to_dict() for doc in filler_users.stream()]
+                PreCalledList = df['uuid'].tolist()
+                filler_user = pd.DataFrame.from_dict(filler_user)
+                filler_user = filler_user[~filler_user['uuid'].isin(PreCalledList)]
+                filler_user = filler_user[~filler_user['uuid'].isin(CurrentList)]
+
+                df = df.append(filler_user)
+                
             df = df[0:400]
 
             return df, tagData
             # print('exit else case')
+
+
+    def DateGetTest(self, id):
+        self.user_ref = db.collection(u'DateUsers').document(id)
+        self.doc = self.user_ref.get()
+
+        tagData = {}
+        tagData["city"] = u'{}'.format(self.doc.to_dict()['city'])
+        
+        # for doc in docs:
+        self.user_data["Drinking"] = u'{}'.format(self.doc.to_dict()['drinking'])
+        self.user_data["Smoking"] = u'{}'.format(self.doc.to_dict()['smoking'])
+        self.user_data["Gender"] = u'{}'.format(self.doc.to_dict()['gender'])
+        self.user_data["Age"] = u'{}'.format(self.doc.to_dict()['age'])
+        self.user_data["PrefDrinking"] = u'{}'.format(self.doc.to_dict()['pDrinking'])
+        self.user_data["PrefSmoking"] = u'{}'.format(self.doc.to_dict()['pSmoking'])
+        self.user_data["SexPreference"] = u'{}'.format(self.doc.to_dict()['wishToMeet'])
+        self.user_data["AgeRangeS"] = u'{}'.format(self.doc.to_dict()['preffAge']['start'])
+        self.user_data["AgeRangeE"] = u'{}'.format(self.doc.to_dict()['preffAge']['end'])
+
+        #count of existing documents in users BestMatches
+        # collectBM = db.collection('DateUsers').document(id).collection('BestMatches')
+        # collectionLen = len(list(collectBM.get()))
+        # #count of existing documents in users Swiped sub-collection
+        # collectSM = db.collection('DateUsers').document(id).collection('Swiped')
+        # collectionLen = collectionLen + len(list(collectSM.get()))
+
+        #list existing uuid in sub-collections bestmatches
+        CurrentQueryBM = db.collection('DateUsers').document(id).collection('BestMatches')
+        CurrentListBM = [docls.id for docls in CurrentQueryBM.stream()]
+
+        CurrentQuerySM = db.collection('DateUsers').document(id).collection('Swiped')
+        CurrentList = [docls.id for docls in CurrentQuerySM.stream()]
+        # CurrentListSM = []
+        # CurrentListBM = []
+        CurrentList.append(CurrentListBM)
+
+
+        # unfit = db.collection('DateUsers').where(u'Smoking', u'==', self.user_data["Smoking"]).where(u'Drinking', u'==', self.user_data["Drinking"])
+        if self.user_data["SexPreference"] == 'both':
+            # print('Entering first if case')
+            all_users = db.collection('DateUsers').where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).where(u'smoking', u'==', self.user_data["PrefSmoking"]).where(u'drinking', u'==', self.user_data["PrefDrinking"]).limit(len(CurrentList) + 400)
+            all_user = [doc.to_dict() for doc in all_users.stream()]
+            # all_id = [doc.id for doc in all_users.stream()]
+
+            df = pd.DataFrame.from_dict(all_user)
+            # df['id'] = all_id
+
+            df = df[~df['uuid'].isin(CurrentList)]
+
+            # if len(df) < 400:
+            #     filler_users = db.collection('DateUsers').where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).limit(len(CurrentList) + 400)
+            #     filler_user = [doc.to_dict() for doc in filler_users.stream()]
+            #     PreCalledList = df['uuid'].tolist()
+            #     filler_user = filler_user[~filler_user['uuid'].isin(PreCalledList)]
+            #     filler_user = filler_user[~filler_user['uuid'].isin(CurrentList)]
+
+            #     df = df.append(filler_user)
+
+            df = df[0:400]
+
+            return df, tagData
+            # print('exit if case')
+        else:
+
+            all_users = db.collection('DateUsers').where(u'gender', u'==', self.user_data["SexPreference"]).where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).where(u'smoking', u'==', self.user_data["PrefSmoking"]).where(u'drinking', u'==', self.user_data["PrefDrinking"]).limit(len(CurrentList) + 400)
+            all_user = [doc.to_dict() for doc in all_users.stream()]
+            # all_id = [doc.id for doc in all_users.stream()]
+
+            df = pd.DataFrame.from_dict(all_user)
+            # df['id'] = all_id
+
+            df = df[~df['uuid'].isin(CurrentList)]
+        
+            # if len(df) < 400:
+            #     filler_users = db.collection('DateUsers').where(u'age', u'>=', int(self.user_data['AgeRangeS'])).where(u'age', u'<=', int(self.user_data['AgeRangeE'])).limit(len(CurrentList) + 400)
+            #     filler_user = [doc.to_dict() for doc in filler_users.stream()]
+            #     PreCalledList = df['uuid'].tolist()
+            #     filler_user = pd.DataFrame.from_dict(filler_user)
+            #     filler_user = filler_user[~filler_user['uuid'].isin(PreCalledList)]
+            #     filler_user = filler_user[~filler_user['uuid'].isin(CurrentList)]
+
+            #     df = df.append(filler_user)
+                
+            df = df[0:400]
+
+            return df, tagData
 
     def DateGetLite(self, id):
         self.user_ref = db.collection(u'DateUsers').document(id)

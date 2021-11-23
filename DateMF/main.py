@@ -60,10 +60,13 @@ def MFlist():
     outdf = df.loc[out.index]
     
     #Convert value to percentage scale and limiting with -10 to control plan improvement
-    outdf['ComScore'] = (out*100) - 10
+    outdf['compScore'] = int((out*100) - 10)
 
-    outdf['OrderScore'] = outdf[['plan','ComScore']].apply(lambda x: order(*x), axis=1)
+    outdf['orderScore'] = int(outdf[['plan','ComScore']].apply(lambda x: order(*x), axis=1))
 
+
+    #Insied Tags sub nested doc
+    #add field likesYou : False
     #function for nerby location
     #logic currently based on same city of users instead of location radius 
     outdf['nearby'] = outdf['city'].apply(lambda x: True if x == tagData['city'] else False)
